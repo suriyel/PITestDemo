@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>PITestDemo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 分布式Pitest Maven插件 -->
+            <plugin>
+                <groupId>com.distributed.pitest</groupId>
+                <artifactId>distributed-pitest-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <!-- 基础配置 -->
+                    <targetClasses>
+                        org.example.*
+                    </targetClasses>
+                    <targetTests>
+                        org.example.*Test
+                    </targetTests>
+
+                    <!-- Kubernetes配置 -->
+                    <namespace>default</namespace>
+                    <maxParallelPods>3</maxParallelPods>
+
+                    <!-- 分区策略 -->
+                    <partitionStrategy>PACKAGE</partitionStrategy>
+
+                    <!-- 输出配置 -->
+                    <outputDirectory>${project.build.directory}/pit-reports</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>pit-report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>distributed-mutationCoverage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- 配置文件，用于不同环境 -->
+    <profiles>
+        <!-- 开发环境配置 -->
+        <profile>
+            <id>dev-pitest</id>
+            <properties>
+                <pitest.k8s.namespace>pitest-dev</pitest.k8s.namespace>
+                <pitest.max.pods>2</pitest.max.pods>
+                <pitest.timeout>600</pitest.timeout>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.distributed.pitest</groupId>
+                        <artifactId>distributed-pitest-maven-plugin</artifactId>
+                        <configuration>
+                            <namespace>${pitest.k8s.namespace}</namespace>
+                            <maxParallelPods>${pitest.max.pods}</maxParallelPods>
+                            <timeoutInSeconds>${pitest.timeout}</timeoutInSeconds>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- 生产环境配置 -->
+        <profile>
+            <id>prod-pitest</id>
+            <properties>
+                <pitest.k8s.namespace>pitest-prod</pitest.k8s.namespace>
+                <pitest.max.pods>5</pitest.max.pods>
+                <pitest.timeout>1800</pitest.timeout>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.distributed.pitest</groupId>
+                        <artifactId>distributed-pitest-maven-plugin</artifactId>
+                        <configuration>
+                            <namespace>${pitest.k8s.namespace}</namespace>
+                            <maxParallelPods>${pitest.max.pods}</maxParallelPods>
+                            <timeoutInSeconds>${pitest.timeout}</timeoutInSeconds>
+                            <podMemoryLimit>2Gi</podMemoryLimit>
+                            <podCpuLimit>1000m</podCpuLimit>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- 跳过突变测试 -->
+        <profile>
+            <id>skip-pitest</id>
+            <activation>
+                <property>
+                    <name>skipPitest</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.distributed.pitest</groupId>
+                        <artifactId>distributed-pitest-maven-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
