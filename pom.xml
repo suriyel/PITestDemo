@@ -24,39 +24,25 @@
 
     <build>
         <plugins>
-            <!-- 分布式Pitest Maven插件 -->
             <plugin>
                 <groupId>com.distributed.pitest</groupId>
                 <artifactId>distributed-pitest-maven-plugin</artifactId>
                 <version>1.0.0</version>
                 <configuration>
-                    <!-- 基础配置 -->
-                    <targetClasses>
-                        org.example.*
-                    </targetClasses>
-                    <targetTests>
-                        org.example.*Test
-                    </targetTests>
+                    <!-- 基本配置 -->
+                    <targetClasses>com.example.*</targetClasses>
+                    <targetTests>com.example.*Test</targetTests>
 
                     <!-- Kubernetes配置 -->
                     <namespace>default</namespace>
-                    <maxParallelPods>3</maxParallelPods>
+                    <maxParallelPods>5</maxParallelPods>
 
-                    <!-- 分区策略 -->
-                    <partitionStrategy>PACKAGE</partitionStrategy>
-
-                    <!-- 输出配置 -->
-                    <outputDirectory>${project.build.directory}/pit-reports</outputDirectory>
+                    <!-- Docker镜像配置 -->
+                    <buildDockerImage>true</buildDockerImage>
+                    <dockerRegistry>localhost:5000</dockerRegistry>
+                    <dockerImageName>my-pitest</dockerImageName>
+                    <dockerImageTag>${project.version}</dockerImageTag>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>pit-report</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>distributed-mutationCoverage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
