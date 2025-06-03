@@ -39,6 +39,7 @@
 
                     <!-- Docker镜像配置 -->
                     <buildDockerImage>true</buildDockerImage>
+                    <pushDockerImage>true</pushDockerImage>  <!-- 启用推送 -->
                     <dockerRegistry>localhost:5000</dockerRegistry>
                     <dockerImageName>my-pitest</dockerImageName>
                     <dockerImageTag>${project.version}</dockerImageTag>
